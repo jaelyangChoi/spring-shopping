@@ -27,9 +27,16 @@ class ProductValidateTest {
         validator.lengthValidate(input) shouldBe expected
     }
 
-    @Test
-    fun charValidation() {
-
+    @ParameterizedTest
+    @CsvSource(value = [
+        "아이스아메리카노*,false",
+        "'()',true",
+        "[!!)),false",
+        "'( 아이스아메리카노@)',false",
+        "아이스라떼샷추가+-,true"
+    ])
+    fun charValidation(input: String, expected: Boolean) {
+        validator.charValidate(input) shouldBe expected
     }
 
     @Test
