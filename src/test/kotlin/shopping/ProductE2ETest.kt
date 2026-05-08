@@ -134,6 +134,10 @@ class ProductE2ETest(
 
     }
 
+    @Test
+    fun validatorTest() {
+
+    }
 
     private fun insertProduct(): ResponseEntity<ProductResponse> {
         val request = ProductRequest(
