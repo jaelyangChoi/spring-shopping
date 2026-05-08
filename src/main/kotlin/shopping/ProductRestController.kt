@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
 const val PRODUCT_PATH = "/api/products"
+const val VALID_API_PATH = "https://www.purgomalum.com/service/containsprofanity?text="
 
 @RestController()
 class ProductRestController(

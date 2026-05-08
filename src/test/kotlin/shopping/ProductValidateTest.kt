@@ -5,9 +5,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.BDDMockito.given
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.anyString
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestConstructor
+import org.springframework.web.client.RestClient
 
 
 class ProductValidateTest {
@@ -39,9 +43,27 @@ class ProductValidateTest {
         validator.charValidate(input) shouldBe expected
     }
 
-    @Test
-    fun slangValidation() {
+    @ParameterizedTest
+    @CsvSource(value = [
+        "fuck,false",
+        "ice,true"
+    ])
+    fun slangValidation(input: String, expected: Boolean) {
+        // given
+        val mockRestClient = mock(RestClient::class.java)
+        val mockUriSpec = mock(RestClient.RequestHeadersUriSpec::class.java)
+        val mockHeadersSpec = mock(RestClient.RequestHeadersSpec::class.java)
+        val mockResponseSpec = mock(RestClient.ResponseSpec::class.java)
 
+        given(mockRestClient.get()).willReturn(mockUriSpec)
+        given(mockUriSpec.uri(anyString())).willReturn(mockHeadersSpec)
+        given(mockHeadersSpec.retrieve()).willReturn(mockResponseSpec)
+        given(mockResponseSpec.body(String::class.java)).willReturn((!expected).toString())
+
+        val validator = ProductValidator(mockRestClient)
+
+        // when & then
+        validator.slangValidate(input) shouldBe expected
     }
 
 }

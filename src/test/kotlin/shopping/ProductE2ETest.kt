@@ -1,5 +1,6 @@
 package shopping
 
+import io.kotest.assertions.print.print
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -7,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.BDDMockito.given
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -154,4 +157,21 @@ class ProductE2ETest(
             .retrieve()
             .toEntity<ProductResponse>()
     }
+
+    @ParameterizedTest
+    @CsvSource(value = [
+        "fuck,true",
+        "ice,false"
+    ])
+    fun callExtApiTest(text: String, expected: Boolean) {
+        val extApiClient = builder.baseUrl("").build()
+        val actual = extApiClient
+            .get()
+            .uri("https://www.purgomalum.com/service/containsprofanity?text=$text")
+            .retrieve()
+            .body(String::class.java)
+
+        actual.toBoolean() shouldBe expected
+    }
+
 }
