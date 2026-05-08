@@ -16,7 +16,11 @@ import org.springframework.web.client.RestClient
 
 class ProductValidateTest {
 
-    val validator: ProductValidator = ProductValidator()
+    private val mockRestClient: RestClient = mock(RestClient::class.java)
+    private val mockBuilder: RestClient.Builder = mock(RestClient.Builder::class.java).also {
+        given(it.build()).willReturn(mockRestClient)
+    }
+    val validator: ProductValidator = ProductValidator(mockBuilder)
 
     @ParameterizedTest
     @CsvSource(value = [
@@ -50,7 +54,6 @@ class ProductValidateTest {
     ])
     fun slangValidation(input: String, expected: Boolean) {
         // given
-        val mockRestClient = mock(RestClient::class.java)
         val mockUriSpec = mock(RestClient.RequestHeadersUriSpec::class.java)
         val mockHeadersSpec = mock(RestClient.RequestHeadersSpec::class.java)
         val mockResponseSpec = mock(RestClient.ResponseSpec::class.java)
@@ -59,8 +62,6 @@ class ProductValidateTest {
         given(mockUriSpec.uri(anyString())).willReturn(mockHeadersSpec)
         given(mockHeadersSpec.retrieve()).willReturn(mockResponseSpec)
         given(mockResponseSpec.body(String::class.java)).willReturn((!expected).toString())
-
-        val validator = ProductValidator(mockRestClient)
 
         // when & then
         validator.slangValidate(input) shouldBe expected

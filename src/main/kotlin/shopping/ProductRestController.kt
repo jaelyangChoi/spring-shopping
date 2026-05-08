@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import jakarta.validation.Valid
 import java.net.URI
 
 const val PRODUCT_PATH = "/api/products"
@@ -28,7 +29,7 @@ class ProductRestController(
     }
 
     @PostMapping(PRODUCT_PATH)
-    fun addProduct(@RequestBody request: ProductRequest): ResponseEntity<ProductResponse> {
+    fun addProduct(@RequestBody @Valid request: ProductRequest): ResponseEntity<ProductResponse> {
         val response = productService.addProduct(request)
         return ResponseEntity
             .created(URI.create("$PRODUCT_PATH/${response.id}"))
@@ -36,7 +37,7 @@ class ProductRestController(
     }
 
     @PutMapping("$PRODUCT_PATH/{id}")
-    fun updateProduct(@PathVariable id: Long, @RequestBody request: ProductRequest): ProductResponse {
+    fun updateProduct(@PathVariable id: Long, @RequestBody @Valid request: ProductRequest): ProductResponse {
         return productService.updateProduct(id, request)
     }
 }

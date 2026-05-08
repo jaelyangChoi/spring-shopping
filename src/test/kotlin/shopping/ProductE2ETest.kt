@@ -20,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
 
@@ -58,7 +59,7 @@ class ProductE2ETest(
 
     @Test
     fun insert() {
-        val actual = insertProduct()
+        val actual = insertProduct("아이스 카페 아메리카노 T")
 
         actual.statusCode shouldBe HttpStatus.CREATED
         actual.headers.location.toString() shouldContain "/api/products"
@@ -67,7 +68,7 @@ class ProductE2ETest(
 
     @Test
     fun getProducts() {
-        insertProduct()
+        insertProduct("아이스 카페 아메리카노 T")
 
         val response = ProductResponse(
             1L,
@@ -93,7 +94,7 @@ class ProductE2ETest(
 
     @Test
     fun getProduct() {
-        insertProduct()
+        insertProduct("아이스 카페 아메리카노 T")
 
         val actual = client
             .get()
@@ -112,7 +113,7 @@ class ProductE2ETest(
     @Test
     fun update() {
         // given
-        val response = insertProduct()
+        val response = insertProduct("아이스 카페 아메리카노 T")
         val body = response.body
         body.shouldNotBeNull()
         val productId = body.id
@@ -137,25 +138,37 @@ class ProductE2ETest(
 
     }
 
-    @Test
-    fun validatorTest() {
-
+    @ParameterizedTest
+    @CsvSource(value = [
+        "아이스아메리카노,201",
+        "아이스아메리카노!,400",
+        "아이스fuck,400"
+    ])
+    fun validatorTest(productName: String, expected: Int) {
+        val actual = insertProduct(productName)
+        actual.statusCode.value() shouldBe expected
+        if (expected == 201) actual.body.shouldNotBeNull()
     }
 
-    private fun insertProduct(): ResponseEntity<ProductResponse> {
+
+    private fun insertProduct(productName: String): ResponseEntity<ProductResponse> {
         val request = ProductRequest(
-            name = "아이스 카페 아메리카노 T",
+            name = productName,
             price = 4500,
             imageUrl = "https://st.kakaocdn.net/product/gift/product/20231010111814_9a667f9eccc943648797925498bdd8a3.jpg"
         )
 
-        return client
-            .post()
-            .uri(PRODUCT_PATH)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(request)
-            .retrieve()
-            .toEntity<ProductResponse>()
+        return try {
+            client
+                .post()
+                .uri(PRODUCT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .toEntity<ProductResponse>()
+        } catch (e: HttpClientErrorException) {
+            ResponseEntity.status(e.statusCode).build()
+        }
     }
 
     @ParameterizedTest

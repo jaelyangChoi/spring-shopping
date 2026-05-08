@@ -1,6 +1,7 @@
 package shopping
 
 data class ProductRequest(
+    @field:ValidProductName
     val name: String,
     val price: Int,
     val imageUrl: String
